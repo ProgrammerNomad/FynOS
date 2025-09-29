@@ -1,29 +1,52 @@
 @echo off
-REM FynOS Build Script for Windows
-REM Requires NASM and QEMU to be in PATH
+REM FynOS Build Script v0.1.0
+REM Builds multi-stage bootloader with 32-bit protected mode kernel
 
-echo Building FynOS...
+echo.
+echo ========================================
+echo        Building FynOS v0.1.0
+echo ========================================
+echo.
 
-REM Create build directory if it doesn't exist
 if not exist build mkdir build
 
-REM Build the boot sector
+echo [1/3] Building Stage 1 bootloader...
 nasm -f bin boot\bios\boot.asm -o build\boot.bin
-
 if %errorlevel% neq 0 (
-    echo Build failed!
+    echo ERROR: Stage 1 build failed!
     pause
     exit /b 1
 )
 
-echo Build successful!
+echo [2/3] Building Stage 2 bootloader...
+nasm -f bin boot\bios\stage2.asm -o build\stage2.bin
+if %errorlevel% neq 0 (
+    echo ERROR: Stage 2 build failed!
+    pause
+    exit /b 1
+)
+
+echo [3/3] Building 32-bit kernel...
+nasm -f bin kernel\kernel-simple.asm -o build\kernel.bin
+if %errorlevel% neq 0 (
+    echo ERROR: Kernel build failed!
+    pause
+    exit /b 1
+)
+
+echo [4/4] Creating bootable OS image...
+powershell -Command "Get-Content build\boot.bin, build\stage2.bin, build\kernel.bin -Encoding Byte | Set-Content build\fynos.img -Encoding Byte"
+
+echo.
+echo ========================================
+echo     FynOS v0.1.0 Built Successfully!
+echo ========================================
 echo.
 
-REM Ask user if they want to run in QEMU
-set /p choice="Run in QEMU? (y/n): "
+set /p choice="Launch in QEMU? (y/n): "
 if /i "%choice%"=="y" (
-    echo Starting QEMU...
-    qemu-system-i386 -drive format=raw,file=build\boot.bin
+    echo Starting FynOS...
+    "C:\Program Files\qemu\qemu-system-i386.exe" -drive format=raw,file=build\fynos.img
 )
 
 pause
