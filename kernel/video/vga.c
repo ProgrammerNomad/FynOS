@@ -1,12 +1,33 @@
 #include "video/vga.h"
+#include "cpu/io.h"
 
-#define VGA_MEMORY 0xB8000
-#define VGA_WIDTH  80
-#define VGA_HEIGHT 25
+#define VGA_MEMORY    0xB8000
+#define VGA_WIDTH     80
+#define VGA_HEIGHT    25
+#define VGA_CRT_INDEX 0x3D4
+#define VGA_CRT_DATA  0x3D5
 
 static uint32_t cursor_x = 0;
 static uint32_t cursor_y = 0;
 static uint8_t  current_color = 0x07;
+
+static void vga_update_hw_cursor(void)
+{
+    uint16_t pos = (uint16_t)(cursor_y * VGA_WIDTH + cursor_x);
+
+    outb(VGA_CRT_INDEX, 0x0F);
+    outb(VGA_CRT_DATA, (uint8_t)(pos & 0xFF));
+    outb(VGA_CRT_INDEX, 0x0E);
+    outb(VGA_CRT_DATA, (uint8_t)((pos >> 8) & 0xFF));
+}
+
+static void vga_enable_hw_cursor(void)
+{
+    outb(VGA_CRT_INDEX, 0x0A);
+    outb(VGA_CRT_DATA, (uint8_t)((inb(VGA_CRT_DATA) & 0xC0) | 0x0E));
+    outb(VGA_CRT_INDEX, 0x0B);
+    outb(VGA_CRT_DATA, 0x0F);
+}
 
 static void vga_scroll(void)
 {
@@ -26,6 +47,8 @@ static void vga_scroll(void)
 void vga_init(void)
 {
     vga_clear();
+    vga_enable_hw_cursor();
+    vga_update_hw_cursor();
 }
 
 void vga_clear(void)
@@ -39,6 +62,7 @@ void vga_clear(void)
     }
     cursor_x = 0;
     cursor_y = 0;
+    vga_update_hw_cursor();
 }
 
 void vga_set_color(uint8_t fg, uint8_t bg)
@@ -75,6 +99,8 @@ void vga_print_char(char c)
     if (cursor_y >= VGA_HEIGHT) {
         vga_scroll();
     }
+
+    vga_update_hw_cursor();
 }
 
 void vga_print_string(const char *str)
