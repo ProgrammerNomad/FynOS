@@ -12,7 +12,7 @@ See [`docs/philosophy.md`](docs/philosophy.md) for design principles.
 
 ## Current Status
 
-**v0.1** - Interactive C kernel with VGA text, memory allocator, PS/2 keyboard, and CLI shell.
+**v0.1.0-alpha** - Interactive C kernel with VGA text, memory allocator, PS/2 keyboard, and CLI shell.
 
 See [`STATUS.md`](STATUS.md) for details.
 
@@ -64,7 +64,7 @@ GUI lives in `apps/` as userspace programs - not in the kernel.
 | Version | Focus |
 |---------|-------|
 | v0.0 | Boot + Hello - **done** |
-| v0.1 | C kernel, memory, keyboard, CLI |
+| v0.1 | C kernel, memory, keyboard, CLI - **done** |
 | v0.2 | VFS, FAT32, userspace apps |
 | v0.3 | Framebuffer, mouse, WM + desktop |
 | v1.0 | Package manager, USB, stable desktop |
@@ -83,10 +83,11 @@ GUI lives in `apps/` as userspace programs - not in the kernel.
 
 ## License
 
-MIT License - free to learn, modify, and share.
+This project is licensed under the MIT License.
+See the [LICENSE](LICENSE) file for details.
 
 ## Credits
 
-Developed by [ProgrammerNomad](https://github.com/ProgrammerNomad).
+Developed by [Shiv Singh](https://github.com/ProgrammerNomad) ([@ProgrammerNomad](https://github.com/ProgrammerNomad)).
 
 Inspired by [OSDev Wiki](https://wiki.osdev.org/).
