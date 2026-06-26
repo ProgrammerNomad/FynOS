@@ -2,6 +2,8 @@
 ; Assembly stub that calls C kernel
 
 bits 32
+
+section .note.GNU-stack noalloc noexec nowrite progbits
 section .text
 
 global _start

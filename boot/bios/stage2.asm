@@ -1,10 +1,12 @@
 ; FynOS - Stage 2 Bootloader
 ; Loads kernel, enables A20, switches to 32-bit protected mode
 
+%ifndef KERNEL_SECTORS
+%define KERNEL_SECTORS 16
+%endif
+
 bits 16
 org 0x7E00
-
-KERNEL_SECTORS equ 32
 
 mov [boot_drive], dl
 
@@ -23,6 +25,8 @@ out 0x92, al
 mov si, loading_kernel_msg
 call print_string
 
+mov ax, 0
+mov es, ax
 mov bx, 0x1000
 mov dh, 0
 mov dl, [boot_drive]
@@ -82,7 +86,7 @@ init_pm:
     mov ebp, 0x90000
     mov esp, ebp
 
-    jmp 0x1000
+    jmp CODE_SEG:0x1000
 
     jmp $
 
@@ -110,8 +114,8 @@ gdt_descriptor:
     dw gdt_end - gdt_start - 1
     dd gdt_start
 
-CODE_SEG equ gdt_start + 8
-DATA_SEG equ gdt_start + 16
+CODE_SEG equ 0x08
+DATA_SEG equ 0x10
 
 boot_drive db 0
 stage2_msg db "Stage 2 loaded! ", 0
