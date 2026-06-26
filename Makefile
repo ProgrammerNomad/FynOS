@@ -1,71 +1,86 @@
-# FynOS Makefile v0.1.0
-# Build system for FynOS operating system
+# FynOS Makefile
+# Single canonical build system - Linux/WSL only
 
-# Directories
 BUILD_DIR = build
-BOOT_DIR = boot
-BIOS_DIR = $(BOOT_DIR)/bios
+BIOS_DIR  = boot/bios
 KERNEL_DIR = kernel
-ARCH_DIR = $(KERNEL_DIR)/arch/x86
+ARCH_DIR  = $(KERNEL_DIR)/arch/x86
 
-# Tools
 NASM = nasm
-CC = gcc
-LD = ld
+CC   = gcc
+LD   = ld
+OBJCOPY = objcopy
 QEMU = qemu-system-i386
 
-# Compiler flags
-CFLAGS = -m32 -ffreestanding -fno-builtin -fno-stack-protector -nostdlib -Wall -Wextra
+CFLAGS = -m32 -std=c99 -ffreestanding -fno-builtin -fno-stack-protector \
+         -nostdlib -Wall -Wextra -Werror -I$(KERNEL_DIR)
+
 LDFLAGS = -m elf_i386
 
-# Default target
+KERNEL_C_SRCS = \
+	$(KERNEL_DIR)/kernel.c \
+	$(KERNEL_DIR)/cpu/pic.c \
+	$(KERNEL_DIR)/cpu/idt.c \
+	$(KERNEL_DIR)/video/vga.c \
+	$(KERNEL_DIR)/video/framebuffer.c \
+	$(KERNEL_DIR)/memory/phys.c \
+	$(KERNEL_DIR)/drivers/keyboard.c \
+	$(KERNEL_DIR)/terminal/shell.c \
+	$(KERNEL_DIR)/fs/vfs.c \
+	$(KERNEL_DIR)/fs/fat32.c
+
+KERNEL_C_OBJS = $(patsubst $(KERNEL_DIR)/%.c,$(BUILD_DIR)/kernel/%.o,$(KERNEL_C_SRCS))
+
+KERNEL_ASM_OBJS = $(BUILD_DIR)/kernel/arch/x86/entry.o \
+                  $(BUILD_DIR)/kernel/cpu/isr.o
+
+KERNEL_OBJS = $(KERNEL_C_OBJS) $(KERNEL_ASM_OBJS)
+
+.PHONY: all run clean debug legacy
+
 all: $(BUILD_DIR)/fynos.img
 
-# Build complete OS image
 $(BUILD_DIR)/fynos.img: $(BUILD_DIR)/boot.bin $(BUILD_DIR)/stage2.bin $(BUILD_DIR)/kernel.bin | $(BUILD_DIR)
 	cat $^ > $@
-	@echo "FynOS v0.1.0 built successfully!"
+	@echo "FynOS built successfully."
 
-# Build boot sector (stage 1)
 $(BUILD_DIR)/boot.bin: $(BIOS_DIR)/boot.asm | $(BUILD_DIR)
 	$(NASM) -f bin $< -o $@
 
-# Build stage 2 bootloader
 $(BUILD_DIR)/stage2.bin: $(BIOS_DIR)/stage2.asm | $(BUILD_DIR)
 	$(NASM) -f bin $< -o $@
 
-# Build kernel
-$(BUILD_DIR)/kernel.bin: $(BUILD_DIR)/entry.o $(BUILD_DIR)/kernel.o
-	$(LD) $(LDFLAGS) -T $(KERNEL_DIR)/linker.ld -o $@ $^
+$(BUILD_DIR)/kernel.bin: $(BUILD_DIR)/kernel.elf
+	$(OBJCOPY) -O binary $< $@
 
-# Build kernel entry point
-$(BUILD_DIR)/entry.o: $(ARCH_DIR)/entry.asm | $(BUILD_DIR)
-	$(NASM) -f elf32 $< -o $@
+$(BUILD_DIR)/kernel.elf: $(KERNEL_OBJS) $(KERNEL_DIR)/linker.ld | $(BUILD_DIR)
+	$(LD) $(LDFLAGS) -T $(KERNEL_DIR)/linker.ld -o $@ $(KERNEL_OBJS)
 
-# Build kernel C code
-$(BUILD_DIR)/kernel.o: $(KERNEL_DIR)/kernel.c | $(BUILD_DIR)
+$(BUILD_DIR)/kernel/%.o: $(KERNEL_DIR)/%.c | $(BUILD_DIR)
+	@mkdir -p $(dir $@)
 	$(CC) $(CFLAGS) -c $< -o $@
 
-# Create build directory
+$(BUILD_DIR)/kernel/arch/x86/entry.o: $(ARCH_DIR)/entry.asm | $(BUILD_DIR)
+	@mkdir -p $(dir $@)
+	$(NASM) -f elf32 $< -o $@
+
+$(BUILD_DIR)/kernel/cpu/isr.o: $(KERNEL_DIR)/cpu/isr.asm | $(BUILD_DIR)
+	@mkdir -p $(dir $@)
+	$(NASM) -f elf32 $< -o $@
+
 $(BUILD_DIR):
 	mkdir -p $(BUILD_DIR)
 
-# Run in QEMU
 run: $(BUILD_DIR)/fynos.img
 	$(QEMU) -drive format=raw,file=$<
 
-# Clean build artifacts
-clean:
-	rm -rf $(BUILD_DIR)/*
-
-# Debug with QEMU monitor
 debug: $(BUILD_DIR)/fynos.img
 	$(QEMU) -drive format=raw,file=$< -monitor stdio
 
-# Legacy v0.0.1 build (simple bootloader only)
+clean:
+	rm -rf $(BUILD_DIR)
+
 legacy: $(BUILD_DIR)/boot-simple.bin
 
 $(BUILD_DIR)/boot-simple.bin: $(BIOS_DIR)/boot-simple.asm | $(BUILD_DIR)
 	$(NASM) -f bin $< -o $@
-
-.PHONY: all run clean debug legacy
