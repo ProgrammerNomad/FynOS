@@ -6,9 +6,8 @@
 /* CPU register snapshot passed to interrupt handlers (matches isr.asm stack). */
 typedef struct registers {
     uint32_t gs, fs, es, ds;
-    uint32_t edi, esi, ebp, esp_dummy, ebx, edx, ecx, eax;
-    uint32_t int_no;
-    uint32_t err_code;
+    uint32_t eax, ecx, edx, ebx, esp, ebp, esi, edi;
+    uint32_t int_no, err_code;
 } registers_t;
 
 /* Initialize IDT and load it. */

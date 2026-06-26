@@ -47,15 +47,34 @@ build/fynos.img     # Complete bootable image
 make run
 ```
 
-`make run` boots via floppy emulation (`-fda`), which SeaBIOS recognizes for small OS images.
+Normal development - QEMU window stays open (`-no-shutdown`).
 
-Click inside the QEMU window before typing. Press Ctrl+Alt+G to release the mouse.
-
-Or use the helper script:
+### Debug when QEMU exits or hangs
 
 ```bash
-./scripts/run.sh
+make run-debug
 ```
+
+Shows **serial boot log** in your terminal (`BOOT 1`, `BOOT 2`, ...) and writes `qemu.log` for CPU resets and triple faults.
+
+```bash
+make run-gdb
+```
+
+In another terminal:
+
+```bash
+gdb build/kernel.elf
+(gdb) target remote :1234
+```
+
+### Workflow
+
+1. `make run` - normal
+2. `make run-debug` - if QEMU closes or kernel hangs
+3. `make run-gdb` - step through code
+
+Click inside the QEMU window before typing. Press Ctrl+Alt+G to release the mouse.
 
 ## Clean
 
