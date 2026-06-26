@@ -1,4 +1,4 @@
-; FynOS — BIOS boot sector v0.0.1 (512B)
+; FynOS - BIOS boot sector v0.0.1 (512B)
 ; Simple bootloader that just prints welcome message
 
 bits 16

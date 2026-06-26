@@ -1,60 +1,57 @@
-# FynOS v0.1.0 - Development Status
+# FynOS Development Status
 
-## ✅ Completed Features
+## Current Version: v0.1
 
-### v0.0.1 - Simple Bootloader
+Interactive C kernel with modular architecture.
+
+## Completed
+
+### v0.0 - Boot + Hello
 - 512-byte BIOS boot sector
-- Basic "Welcome to FynOS!" message
-- Single-stage boot process
+- "Welcome to FynOS!" message
 
-### v0.1.0 - Multi-stage Protected Mode Boot
-- **Two-stage bootloader:**
-  - Stage 1: BIOS boot sector (512B) - loads stage 2
-  - Stage 2: Protected mode loader (512B) - switches to 32-bit mode
-- **32-bit protected mode kernel (512B)**
-- **VGA text output with colors**
-- **Complete build system**
+### v0.1 - Interactive Kernel (in progress)
+- Multi-stage BIOS bootloader (protected mode)
+- C kernel with modular layout
+- VGA text output (`kernel/video/vga.c`)
+- Physical bump allocator (`kernel/memory/phys.c`)
+- PS/2 keyboard driver (`kernel/drivers/keyboard.c`)
+- CLI shell (`kernel/terminal/shell.c`)
+- IDT and interrupt handling (`kernel/cpu/idt.c`)
+- Single build system: WSL/Linux + `make`
 
-## 🎯 Current Status
-
-**Working:** Multi-stage bootloader successfully loads and switches to protected mode
-**Next:** Enhanced C kernel with more features (requires GCC toolchain)
-
-## 🚀 Quick Start
+## Build
 
 ```bash
-# Build and run
-.\build.bat
-
-# This creates:
-# - build\boot.bin     (Stage 1 bootloader)
-# - build\stage2.bin   (Stage 2 bootloader) 
-# - build\kernel.bin   (32-bit kernel)
-# - build\fynos.img    (Complete OS image)
+make        # Build fynos.img
+make run    # Run in QEMU
+make clean  # Remove build artifacts
+make legacy # Build v0.0 boot sector only
 ```
 
-## 📋 Requirements
+## Milestones
 
-- **NASM** - Netwide Assembler
-- **QEMU** - x86 emulator
-- **Optional:** GCC + LD for C kernel development
+| Milestone | Scope | Status |
+|-----------|-------|--------|
+| M0 | Bootloader | Done |
+| M1 | C Kernel | Done |
+| M2 | Memory | Done |
+| M3 | Keyboard | Done |
+| M4 | Shell | Done |
+| M5 | Filesystem | Stubbed |
+| M6 | Graphics | VGA done; framebuffer stubbed |
+| M7 | GUI (userspace) | Stubbed |
+| M8 | Networking | Planned |
 
-## 🎉 What You'll See
+## Next
 
-When you run FynOS v0.1.0:
+- v0.2: VFS + FAT32, load apps from disk
+- UEFI boot path (`boot/uefi/`)
+- Framebuffer and 2D graphics
 
-1. "Loading FynOS..." (Stage 1)
-2. "Stage 2 loaded! Loading kernel... OK!" (Stage 2)
-3. "Switching to 32-bit mode..." (Stage 2)
-4. Colorful kernel output with features list (32-bit Kernel)
+## Requirements
 
-## 🔧 Next Steps for v0.2.0
+- WSL Ubuntu (or native Linux)
+- NASM, GCC (32-bit), LD, QEMU
 
-- Keyboard input handling
-- Basic shell commands
-- Memory management
-- Timer interrupts
-
----
-
-*Built with ❤️ by ProgrammerNomad*
+See [`docs/build-instructions.md`](docs/build-instructions.md).
