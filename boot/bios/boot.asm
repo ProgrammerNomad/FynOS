@@ -1,4 +1,4 @@
-; FynOS — First Stage Bootloader (512B)
+; FynOS - First Stage Bootloader (512B)
 ; Loads second stage and kernel from disk
 
 bits 16
