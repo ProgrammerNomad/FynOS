@@ -2,6 +2,34 @@
 
 All notable changes to FynOS are documented in this file.
 
+## [0.2.0-alpha] - 2026-06-26
+
+Kernel foundation release. Milestones M2 (memory) and M3 (interrupts) complete.
+
+### Highlights
+
+- Kernel panic handler (`panic.c`) with visible halt screen
+- Heap allocator: `kmalloc`, `kfree`, simple free-list
+- Paging: identity map first 4 MB; page fault calls panic
+- PIT timer at 100 Hz; `uptime` shell command
+- IRQ-driven keyboard (shell blocks with `hlt` while waiting)
+- Regression checklist (`make test`) and architecture decision records
+
+### Shell commands
+
+- `mem` - physical free + heap free (KB)
+- `uptime` - seconds since boot
+
+### Known limitations
+
+- No filesystem, userspace, or driver registry yet (v0.3+)
+- Simple heap: no coalescing or `realloc`
+- Identity map only; no per-process virtual memory
+
+### Next (v0.3)
+
+- Driver registry, ATA, FAT32, VFS, `ls`, `cat`
+
 ## [0.1.0-alpha] - 2026-06-26
 
 First interactive kernel release. Milestone M1 (Interactive Kernel) complete.
@@ -39,4 +67,5 @@ First interactive kernel release. Milestone M1 (Interactive Kernel) complete.
 - VFS + FAT32
 - Userspace foundation
 
+[0.2.0-alpha]: https://github.com/ProgrammerNomad/FynOS/releases/tag/v0.2.0-alpha
 [0.1.0-alpha]: https://github.com/ProgrammerNomad/FynOS/releases/tag/v0.1.0-alpha
