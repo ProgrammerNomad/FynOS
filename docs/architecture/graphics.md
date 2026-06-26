@@ -15,6 +15,7 @@ VGA Text  ->  Framebuffer  ->  2D Primitives  ->  WM (apps/)  ->  Desktop (apps/
 - Direct write to `0xB8000` text buffer
 - 80x25 characters, 16 colors
 - Screen scroll on line overflow
+- CRT hardware cursor synced via ports 0x3D4/0x3D5
 
 ```c
 void vga_init(void);
