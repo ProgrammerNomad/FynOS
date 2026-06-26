@@ -1,11 +1,14 @@
-; FynOS - Interrupt Service Routine stubs
+; FynOS - Interrupt Service Routine stubs (OSDev stack layout)
+; Stack at isr_handler(regs): gs, fs, es, ds, eax..edi, int_no, err_code
+; See registers_t in idt.h and ADR 0008.
+
 bits 32
 
 section .note.GNU-stack noalloc noexec nowrite progbits
+section .text
 
 extern isr_handler
 
-; Ignore unexpected interrupts (unhandled IDT vectors)
 global isr_ignore
 isr_ignore:
     iret
@@ -19,6 +22,7 @@ isr%1:
     jmp isr_common
 %endmacro
 
+; CPU already pushed an error code for these vectors.
 %macro ISR_ERR 1
 global isr%1
 isr%1:
@@ -35,7 +39,7 @@ ISR_NOERR 4
 ISR_NOERR 5
 ISR_NOERR 6
 ISR_NOERR 7
-ISR_ERR   8
+ISR_NOERR 8
 ISR_NOERR 9
 ISR_ERR   10
 ISR_ERR   11
@@ -44,7 +48,7 @@ ISR_ERR   13
 ISR_ERR   14
 ISR_NOERR 15
 ISR_NOERR 16
-ISR_NOERR 17
+ISR_ERR   17
 ISR_NOERR 18
 ISR_NOERR 19
 ISR_NOERR 20
@@ -78,10 +82,15 @@ ISR_NOERR 47
 
 isr_common:
     pusha
-    push ds
-    push es
-    push fs
-    push gs
+
+    mov ax, ds
+    push eax
+    mov ax, es
+    push eax
+    mov ax, fs
+    push eax
+    mov ax, gs
+    push eax
 
     mov ax, 0x10
     mov ds, ax
@@ -93,10 +102,15 @@ isr_common:
     call isr_handler
     add esp, 4
 
-    pop gs
-    pop fs
-    pop es
-    pop ds
+    pop eax
+    mov gs, ax
+    pop eax
+    mov fs, ax
+    pop eax
+    mov es, ax
+    pop eax
+    mov ds, ax
+
     popa
     add esp, 8
     iret

@@ -1,34 +1,30 @@
 # FynOS Development Status
 
-## Current Version: v0.1.0-alpha
+## Current Version: v0.2.0-alpha
 
-Interactive C kernel with modular architecture and CLI shell.
+Kernel foundation: panic handler, heap, paging, PIT timer, IRQ keyboard.
 
 ## Completed
 
-### v0.0 - Boot + Hello
-- 512-byte BIOS boot sector
-- "Welcome to FynOS!" message
+### v0.1 - Interactive Kernel
+- Multi-stage BIOS boot, C kernel, VGA, shell, MIT license
 
-### v0.1 - Interactive Kernel (done)
-- Multi-stage BIOS bootloader (protected mode)
-- C kernel with modular layout
-- VGA text output with hardware cursor sync (`kernel/video/vga.c`)
-- Physical bump allocator (`kernel/memory/phys.c`)
-- PS/2 keyboard driver (`kernel/drivers/keyboard.c`)
-- CLI shell with command table (`kernel/terminal/shell.c`, `commands.c`)
-- Shell commands: `help`, `about`, `clear`, `echo`, `mem`, `version`
-- IDT and interrupt handling (`kernel/cpu/idt.c`)
-- Single build system: WSL/Linux + `make`
-- MIT License (`LICENSE`)
+### v0.2 - Kernel Foundation
+- `kernel/debug/panic.c` - kernel panic banner + halt
+- `kernel/memory/heap.c` - `kmalloc` / `kfree` (simple free-list)
+- `kernel/memory/paging.c` - identity map 4 MB, page fault → panic
+- `kernel/drivers/pit.c` - 100 Hz timer, `uptime` shell command
+- IRQ-driven keyboard (no polling in read path)
+- Shell: improved `mem` (physical + heap), `uptime`
+- Regression checklist (`make test`) and ADRs in `docs/design-decisions/`
 
 ## Build
 
 ```bash
 make        # Build fynos.img
 make run    # Run in QEMU
-make clean  # Remove build artifacts
-make legacy # Build v0.0 boot sector only
+make test   # Print regression checklist
+make clean
 ```
 
 ## Milestones
@@ -37,25 +33,16 @@ make legacy # Build v0.0 boot sector only
 |-----------|-------|--------|
 | M0 | Bootloader | Done |
 | M1 | Interactive Kernel | Done |
-| M2 | Memory (heap, paging) | Planned (v0.2) |
-| M3 | Keyboard (IRQ, timer) | Planned (v0.2) |
-| M4 | Shell polish | Done |
-| M5 | Filesystem | Stubbed |
+| M2 | Heap + paging | Done |
+| M3 | PIT + IRQ keyboard | Done |
+| M5 | Filesystem | Stubbed (v0.3) |
 | M6 | Graphics | VGA done; framebuffer stubbed |
-| M7 | GUI (userspace) | Stubbed |
-| M8 | Networking | Planned |
 
-## Next (v0.2)
+## Next (v0.3)
 
-- Memory manager improvements beyond bump allocator
-- Interrupt-driven keyboard and PIT timer
-- Driver framework
-- VFS + FAT32, load apps from disk
-- Userspace foundation
-
-## Requirements
-
-- WSL Ubuntu (or native Linux)
-- NASM, GCC (32-bit), LD, QEMU
+- Driver registry
+- ATA/IDE driver
+- FAT32 + VFS
+- Shell: `ls`, `cat`
 
 See [`docs/build-instructions.md`](docs/build-instructions.md).

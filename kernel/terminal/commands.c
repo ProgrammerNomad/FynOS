@@ -1,6 +1,8 @@
 #include "terminal/commands.h"
 #include "video/vga.h"
 #include "memory/phys.h"
+#include "memory/heap.h"
+#include "drivers/pit.h"
 #include "version.h"
 
 #include "types.h"
@@ -18,6 +20,7 @@ static void cmd_about(const char *args);
 static void cmd_clear(const char *args);
 static void cmd_echo(const char *args);
 static void cmd_mem(const char *args);
+static void cmd_uptime(const char *args);
 static void cmd_version(const char *args);
 
 static const shell_command_t shell_commands[] = {
@@ -26,6 +29,7 @@ static const shell_command_t shell_commands[] = {
     { "clear",   "Clear the screen",        cmd_clear },
     { "echo",    "Print text",              cmd_echo },
     { "mem",     "Show free memory",        cmd_mem },
+    { "uptime",  "Show uptime in seconds",  cmd_uptime },
     { "version", "Show version string",     cmd_version },
 };
 
@@ -114,17 +118,32 @@ static void cmd_echo(const char *args)
 
 static void cmd_mem(const char *args)
 {
-    size_t free_bytes;
-    uint32_t kb;
+    size_t phys_free;
+    size_t heap_free;
+    uint32_t phys_kb;
+    uint32_t heap_kb;
 
     (void)args;
 
-    free_bytes = phys_free_bytes();
-    kb = (uint32_t)(free_bytes / 1024);
+    phys_free = phys_free_bytes();
+    heap_free = heap_free_bytes();
+    phys_kb = (uint32_t)(phys_free / 1024);
+    heap_kb = (uint32_t)(heap_free / 1024);
 
-    vga_print_string("Free memory: ");
-    print_uint(kb);
+    vga_print_string("Physical free: ");
+    print_uint(phys_kb);
+    vga_print_string(" KB\nHeap free: ");
+    print_uint(heap_kb);
     vga_print_string(" KB\n");
+}
+
+static void cmd_uptime(const char *args)
+{
+    (void)args;
+
+    vga_print_string("Uptime: ");
+    print_uint(pit_uptime_seconds());
+    vga_print_string(" seconds\n");
 }
 
 static void cmd_version(const char *args)
