@@ -20,6 +20,5 @@ void kernel_main(void)
     vga_set_color(7, 0);
     vga_print_string("32-bit Protected Mode C Kernel\n\n");
 
-    __asm__ volatile("sti");
     shell_run();
 }
