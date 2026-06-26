@@ -28,7 +28,7 @@ Backlog -> Design -> In Progress -> Review -> Done
 | # | Load sufficient kernel sectors (32+) | Done |
 | # | Enable A20 line in stage 2 | Done |
 
-### M1 - C Kernel
+### M1 - Interactive Kernel
 
 | Issue | Title | Status |
 |-------|-------|--------|
@@ -36,6 +36,8 @@ Backlog -> Design -> In Progress -> Review -> Done
 | # | Remove ASM kernel and build.bat | Done |
 | # | Modular kernel layout | Done |
 | # | objcopy flat binary output | Done |
+| # | Shell command table refactor | Done |
+| # | about and echo commands | Done |
 
 ### M2 - Memory
 
@@ -59,6 +61,8 @@ Backlog -> Design -> In Progress -> Review -> Done
 |-------|-------|--------|
 | # | Interactive readline loop | Done |
 | # | Commands: help, clear, mem, version | Done |
+| # | Commands: about, echo | Done |
+| # | Dynamic help from command table | Done |
 
 ### M5 - Filesystem
 
