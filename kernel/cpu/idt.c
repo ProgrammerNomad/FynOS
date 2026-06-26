@@ -1,6 +1,8 @@
 #include "cpu/idt.h"
 #include "cpu/pic.h"
+#include "debug/panic.h"
 #include "drivers/keyboard.h"
+#include "drivers/pit.h"
 
 #define IDT_ENTRIES 256
 #define IRQ_BASE    0x20
@@ -110,12 +112,54 @@ void idt_init(void)
     __asm__ volatile("lidt %0" : : "m"(idtp));
 }
 
+static const char *exception_messages[32] = {
+    "Division By Zero",
+    "Debug",
+    "Non Maskable Interrupt",
+    "Breakpoint",
+    "Into Detected Overflow",
+    "Out of Bounds",
+    "Invalid Opcode",
+    "No Coprocessor",
+    "Double Fault",
+    "Coprocessor Segment Overrun",
+    "Bad TSS",
+    "Segment Not Present",
+    "Stack Fault",
+    "General Protection Fault",
+    "Page fault",
+    "Unknown Interrupt",
+    "Coprocessor Fault",
+    "Alignment Check",
+    "Machine Check",
+    "Reserved",
+    "Reserved",
+    "Reserved",
+    "Reserved",
+    "Reserved",
+    "Reserved",
+    "Reserved",
+    "Reserved",
+    "Reserved",
+    "Reserved",
+    "Reserved",
+    "Reserved",
+    "Reserved"
+};
+
 void isr_handler(registers_t *regs)
 {
+    if (regs->int_no < 32) {
+        panic(exception_messages[regs->int_no]);
+        return;
+    }
+
     if (regs->int_no >= IRQ_BASE && regs->int_no < IRQ_BASE + 16) {
         uint8_t irq = (uint8_t)(regs->int_no - IRQ_BASE);
 
-        if (irq == 1) {
+        if (irq == 0) {
+            pit_irq_handler();
+        } else if (irq == 1) {
             keyboard_irq_handler();
         }
 

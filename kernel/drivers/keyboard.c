@@ -1,6 +1,5 @@
 #include "drivers/keyboard.h"
 #include "cpu/io.h"
-#include "cpu/pic.h"
 
 #define KEYBUF_SIZE 256
 
@@ -26,7 +25,7 @@ static void keybuf_push(char c)
     }
 }
 
-static void keyboard_poll(void)
+static void keyboard_read_scancode(void)
 {
     uint8_t scancode;
 
@@ -47,7 +46,7 @@ static void keyboard_poll(void)
 
 void keyboard_irq_handler(void)
 {
-    keyboard_poll();
+    keyboard_read_scancode();
 }
 
 void keyboard_init(void)
@@ -58,7 +57,6 @@ void keyboard_init(void)
 
 int keyboard_has_key(void)
 {
-    keyboard_poll();
     return keybuf_read != keybuf_write;
 }
 
@@ -67,7 +65,7 @@ char keyboard_read_char(void)
     char c;
 
     while (!keyboard_has_key()) {
-        __asm__ volatile("pause");
+        __asm__ volatile("sti; hlt");
     }
 
     c = keybuf[keybuf_read];

@@ -12,7 +12,7 @@ See [`docs/philosophy.md`](docs/philosophy.md) for design principles.
 
 ## Current Status
 
-**v0.1.0-alpha** - Interactive C kernel with VGA text, memory allocator, PS/2 keyboard, and CLI shell.
+**v0.2.0-alpha** - Kernel foundation: heap, paging, PIT timer, IRQ keyboard.
 
 See [`STATUS.md`](STATUS.md) for details.
 
@@ -65,19 +65,23 @@ GUI lives in `apps/` as userspace programs - not in the kernel.
 |---------|-------|
 | v0.0 | Boot + Hello - **done** |
 | v0.1 | C kernel, memory, keyboard, CLI - **done** |
-| v0.2 | VFS, FAT32, userspace apps |
-| v0.3 | Framebuffer, mouse, WM + desktop |
-| v1.0 | Package manager, USB, stable desktop |
-| v2.x | Networking |
-| v3.x | Dev tools |
-| v4.x | Self-hosting |
-| v5.x | Daily usable OS |
+| v0.2 | Heap, paging, IRQ, PIT timer - **done** |
+| v0.3 | Driver registry, ATA, FAT32, VFS |
+| v0.4 | Userspace + syscalls + Ring 3 |
+| v0.5 | Framebuffer + 2D graphics |
+| v0.6 | Window manager + desktop |
+| v0.7 | Networking |
+| v0.8 | USB + PCI |
+| v0.9 | Package manager |
+| v1.0 | Stable desktop OS |
 
 ## Documentation
 
 - [`docs/philosophy.md`](docs/philosophy.md) - Design principles
 - [`docs/coding-standard.md`](docs/coding-standard.md) - Coding rules
 - [`docs/architecture/`](docs/architecture/) - Per-subsystem design docs
+- [`docs/design-decisions/`](docs/design-decisions/) - Architecture decision records (ADRs)
+- [`docs/dev-diary/`](docs/dev-diary/) - Release development notes
 - [`docs/build-instructions.md`](docs/build-instructions.md) - Build guide
 - [`CONTRIBUTING.md`](CONTRIBUTING.md) - How to contribute
 
