@@ -13,7 +13,8 @@ OBJCOPY = objcopy
 QEMU = qemu-system-i386
 
 CFLAGS = -m32 -std=c99 -ffreestanding -fno-builtin -fno-stack-protector \
-         -nostdlib -Wall -Wextra -Werror -I$(KERNEL_DIR)
+         -nostdlib -Wall -Wextra -Werror \
+         -I$(KERNEL_DIR) -I$(KERNEL_DIR)/include
 
 LDFLAGS = -m elf_i386
 
@@ -42,16 +43,19 @@ all: $(BUILD_DIR)/fynos.img
 
 $(BUILD_DIR)/fynos.img: $(BUILD_DIR)/boot.bin $(BUILD_DIR)/stage2.bin $(BUILD_DIR)/kernel.bin | $(BUILD_DIR)
 	cat $^ > $@
+	truncate -s 1474560 $@
 	@echo "FynOS built successfully."
 
 $(BUILD_DIR)/boot.bin: $(BIOS_DIR)/boot.asm | $(BUILD_DIR)
 	$(NASM) -f bin $< -o $@
 
-$(BUILD_DIR)/stage2.bin: $(BIOS_DIR)/stage2.asm | $(BUILD_DIR)
-	$(NASM) -f bin $< -o $@
+# stage2 must be built after kernel.bin so sector count matches actual kernel size
+$(BUILD_DIR)/stage2.bin: $(BIOS_DIR)/stage2.asm $(BUILD_DIR)/kernel.bin | $(BUILD_DIR)
+	$(NASM) -f bin -DKERNEL_SECTORS=$(shell echo $$(( ($$(wc -c < $(BUILD_DIR)/kernel.bin | tr -d ' ') + 511) / 512 ))) $< -o $@
 
 $(BUILD_DIR)/kernel.bin: $(BUILD_DIR)/kernel.elf
 	$(OBJCOPY) -O binary $< $@
+	truncate -s %512 $@
 
 $(BUILD_DIR)/kernel.elf: $(KERNEL_OBJS) $(KERNEL_DIR)/linker.ld | $(BUILD_DIR)
 	$(LD) $(LDFLAGS) -T $(KERNEL_DIR)/linker.ld -o $@ $(KERNEL_OBJS)
@@ -72,10 +76,10 @@ $(BUILD_DIR):
 	mkdir -p $(BUILD_DIR)
 
 run: $(BUILD_DIR)/fynos.img
-	$(QEMU) -drive format=raw,file=$<
+	$(QEMU) -no-reboot -fda $<
 
 debug: $(BUILD_DIR)/fynos.img
-	$(QEMU) -drive format=raw,file=$< -monitor stdio
+	$(QEMU) -no-reboot -fda $< -monitor stdio
 
 clean:
 	rm -rf $(BUILD_DIR)

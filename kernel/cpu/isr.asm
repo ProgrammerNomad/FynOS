@@ -1,14 +1,21 @@
 ; FynOS - Interrupt Service Routine stubs
 bits 32
 
+section .note.GNU-stack noalloc noexec nowrite progbits
+
 extern isr_handler
+
+; Ignore unexpected interrupts (unhandled IDT vectors)
+global isr_ignore
+isr_ignore:
+    iret
 
 %macro ISR_NOERR 1
 global isr%1
 isr%1:
     cli
-    push 0
-    push %1
+    push dword 0
+    push dword %1
     jmp isr_common
 %endmacro
 
@@ -16,7 +23,7 @@ isr%1:
 global isr%1
 isr%1:
     cli
-    push %1
+    push dword %1
     jmp isr_common
 %endmacro
 
@@ -92,5 +99,4 @@ isr_common:
     pop ds
     popa
     add esp, 8
-    sti
     iret
