@@ -1,102 +1,105 @@
 # FynOS Build Instructions
 
+## Development Platform
+
+**Linux/WSL only.** No Windows native build scripts.
+
+```
+Windows  ->  WSL Ubuntu  ->  make
+```
+
 ## Prerequisites
 
-### Windows
-1. **NASM (Netwide Assembler)**
-   - Download from: https://www.nasm.us/pub/nasm/releasebuilds/
-   - Install and add to PATH
-
-2. **QEMU**
-   - Download from: https://www.qemu.org/download/#windows
-   - Install and add to PATH
-
-### Linux/WSL
 ```bash
 sudo apt update
-sudo apt install -y nasm qemu-system-x86 build-essential
+sudo apt install -y nasm qemu-system-x86 build-essential gcc-multilib
 ```
 
-## Building FynOS
+Verify:
 
-### Method 1: Using the Batch File (Windows)
-```cmd
-build.bat
-```
-
-### Method 2: Manual Commands
-
-#### Windows (PowerShell/CMD)
-```cmd
-# Create build directory
-mkdir build
-
-# Build boot sector
-nasm -f bin boot\bios\boot.asm -o build\boot.bin
-
-# Run in QEMU
-qemu-system-i386 -drive format=raw,file=build\boot.bin
-```
-
-#### Linux/WSL
 ```bash
-# Create build directory
-mkdir -p build
-
-# Build boot sector
-nasm -f bin boot/bios/boot.asm -o build/boot.bin
-
-# Run in QEMU
-qemu-system-i386 -drive format=raw,file=build/boot.bin
+nasm -v
+gcc --version
+ld --version
+qemu-system-i386 --version
 ```
 
-### Method 3: Using Make (Linux/WSL)
+## Build
+
+From the project root (in WSL):
+
 ```bash
-make        # Build
-make run    # Build and run
-make clean  # Clean build artifacts
+make
 ```
 
-## Expected Output
+Output:
 
-When you run the boot sector in QEMU, you should see:
 ```
-Welcome to FynOS!
+build/boot.bin      # Stage 1 bootloader
+build/stage2.bin    # Stage 2 loader
+build/kernel.bin    # C kernel (flat binary)
+build/fynos.img     # Complete bootable image
 ```
 
-The cursor will blink below the message, and the system will be in an infinite loop.
+## Run in QEMU
+
+```bash
+make run
+```
+
+Or use the helper script:
+
+```bash
+./scripts/run.sh
+```
+
+## Clean
+
+```bash
+make clean
+# or
+./scripts/clean.sh
+```
+
+## Legacy v0.0 Build
+
+Build only the original single-sector boot sector:
+
+```bash
+make legacy
+qemu-system-i386 -drive format=raw,file=build/boot-simple.bin
+```
 
 ## Troubleshooting
 
-### "nasm: command not found"
-- Ensure NASM is installed and in your PATH
-- On Windows, restart your command prompt after installation
+### `gcc: error: unrecognized command line option '-m32'`
 
-### "qemu-system-i386: command not found"
-- Ensure QEMU is installed and in your PATH
-- On Windows, the executable might be named differently
+Install 32-bit support:
 
-### Boot sector doesn't display message
-- Check that the boot.bin file is exactly 512 bytes
-- Verify the boot signature (0xAA55) is present at the end
-
-## Testing on Real Hardware (Advanced)
-
-⚠️ **WARNING: This will overwrite data on your USB drive!**
-
-1. Insert a USB drive (will be completely erased)
-2. Find the device name (e.g., `/dev/sdb` on Linux, `\\.\PhysicalDrive1` on Windows)
-3. Write the boot sector:
-
-**Linux:**
 ```bash
-sudo dd if=build/boot.bin of=/dev/sdX bs=512 count=1 conv=notrunc
-sync
+sudo apt install gcc-multilib
 ```
 
-**Windows (as Administrator):**
-```cmd
-dd if=build\boot.bin of=\\.\PhysicalDrive1 bs=512 count=1
+### QEMU not found
+
+```bash
+sudo apt install qemu-system-x86
 ```
 
-Replace `/dev/sdX` or `PhysicalDrive1` with your actual USB device identifier.
+### Permission denied on scripts
+
+```bash
+chmod +x scripts/*.sh
+```
+
+## Architecture
+
+The build produces a flat disk image:
+
+| Sector | Content |
+|--------|---------|
+| 1 | Stage 1 (`boot/bios/boot.asm`) |
+| 2 | Stage 2 (`boot/bios/stage2.asm`) |
+| 3+ | Kernel binary |
+
+See [`docs/architecture/boot.md`](architecture/boot.md) for boot chain details.
