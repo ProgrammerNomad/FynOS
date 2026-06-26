@@ -69,6 +69,8 @@ extern void isr45(void);
 extern void isr46(void);
 extern void isr47(void);
 
+extern void isr_ignore(void);
+
 static void (*isr_stubs[48])(void) = {
     isr0, isr1, isr2, isr3, isr4, isr5, isr6, isr7,
     isr8, isr9, isr10, isr11, isr12, isr13, isr14, isr15,
@@ -91,11 +93,15 @@ static void idt_set_gate(uint8_t num, void (*handler)(void))
 
 void idt_init(void)
 {
-    uint8_t i;
+    uint16_t i;
     struct idt_ptr idtp;
 
     for (i = 0; i < 48; i++) {
-        idt_set_gate(i, isr_stubs[i]);
+        idt_set_gate((uint8_t)i, isr_stubs[i]);
+    }
+
+    for (i = 48; i < IDT_ENTRIES; i++) {
+        idt_set_gate((uint8_t)i, isr_ignore);
     }
 
     idtp.limit = (uint16_t)(sizeof(struct idt_entry) * IDT_ENTRIES - 1);

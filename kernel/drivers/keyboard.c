@@ -26,9 +26,15 @@ static void keybuf_push(char c)
     }
 }
 
-void keyboard_irq_handler(void)
+static void keyboard_poll(void)
 {
-    uint8_t scancode = inb(0x60);
+    uint8_t scancode;
+
+    if ((inb(0x64) & 1) == 0) {
+        return;
+    }
+
+    scancode = inb(0x60);
 
     if (scancode & 0x80) {
         return;
@@ -39,15 +45,20 @@ void keyboard_irq_handler(void)
     }
 }
 
+void keyboard_irq_handler(void)
+{
+    keyboard_poll();
+}
+
 void keyboard_init(void)
 {
     keybuf_read  = 0;
     keybuf_write = 0;
-    pic_unmask(1);
 }
 
 int keyboard_has_key(void)
 {
+    keyboard_poll();
     return keybuf_read != keybuf_write;
 }
 
@@ -56,7 +67,7 @@ char keyboard_read_char(void)
     char c;
 
     while (!keyboard_has_key()) {
-        __asm__ volatile("hlt");
+        __asm__ volatile("pause");
     }
 
     c = keybuf[keybuf_read];

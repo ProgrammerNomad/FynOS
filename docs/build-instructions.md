@@ -47,6 +47,10 @@ build/fynos.img     # Complete bootable image
 make run
 ```
 
+`make run` boots via floppy emulation (`-fda`), which SeaBIOS recognizes for small OS images.
+
+Click inside the QEMU window before typing. Press Ctrl+Alt+G to release the mouse.
+
 Or use the helper script:
 
 ```bash
@@ -91,6 +95,20 @@ sudo apt install qemu-system-x86
 ```bash
 chmod +x scripts/*.sh
 ```
+
+### Clock skew warnings on /mnt/c/
+
+If you see `Clock skew detected` while building on `/mnt/c/...`, copy the project to native WSL storage:
+
+```bash
+cp -r /mnt/c/xampp/htdocs/FynOS ~/FynOS
+cd ~/FynOS
+make clean && make && make run
+```
+
+### No bootable device in QEMU
+
+Rebuild after pulling fixes. `make run` must use `-fda` (floppy), not IDE. Run `make clean && make && make run`.
 
 ## Architecture
 
